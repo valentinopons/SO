@@ -1,0 +1,6 @@
+funciones importantes:
+ familia exec() => cambia proceso actual por otro.
+ 
+ La función dup2() redirige un descriptor de archivo (como stdout, 
+ que normalmente es la salida estándar de la terminal) a otro descriptor de archivo. 
+ Esto significa que podemos "cambiar" a qué archivo o recurso se va a enviar la salida.
