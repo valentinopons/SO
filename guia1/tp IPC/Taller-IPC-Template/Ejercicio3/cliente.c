@@ -7,6 +7,30 @@
 #include <sys/un.h>
 
 int main() {
-	// Completar
+	int server_socket;
+    struct sockaddr_un server_addr;
+	char cuenta[10];
+	char res[10];
+    server_addr.sun_family = AF_UNIX;
+    strcpy(server_addr.sun_path, "unix_socket");
+
+    server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (connect(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Error");
+        exit(1);
+    }
+	while (1){
+		printf("introduzca la formula a calcular: ");
+		scanf("%s", cuenta);
+		write(server_socket, &cuenta, sizeof(cuenta));
+		if (!strcmp(cuenta, "exit")){
+			break;
+		}
+		
+		recv(server_socket,res,sizeof(res),0);
+		printf("el resultado de %s es: %s", cuenta, res);
+	}
+	
 	exit(0);
+
 }
