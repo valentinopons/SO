@@ -9,6 +9,7 @@
 int calcular(const char *expresion) {
     int num1, num2, resultado;
     char operador;
+    printf("recibi %s\n", expresion);
 
     // Usamos sscanf para extraer los dos números y el operador de la expresión
     if (sscanf(expresion, "%d%c%d", &num1, &operador, &num2) != 3) {
@@ -39,7 +40,6 @@ int calcular(const char *expresion) {
             printf("Operador no reconocido\n");
             return 0;  // Si el operador no es válido, retornamos 0.
     }
-
     return resultado;
 }
 
@@ -54,7 +54,8 @@ int main() {
     int slen = sizeof(server_addr);
     int clen = sizeof(client_addr);
     char calculo[10];
-
+    int res;
+    char calculocpy[10];
     server_addr.sun_family = AF_UNIX;
     strcpy(server_addr.sun_path, "unix_socket");
     unlink(server_addr.sun_path);
@@ -66,10 +67,27 @@ int main() {
     printf("Servidor: esperando conexión del cliente...\n");
     while(1) {
         client_socket = accept(server_socket, (struct sockaddr *) &client_addr, &clen);
+        pid_t pid = fork();
+        if (pid == 0){
+
+            while (1){
+                recv(client_socket, &calculo, sizeof(calculo), 0);
+                strcpy(calculocpy, calculo);
+                if (!strcmp(calculocpy, "exit"))
+                {
+                    close(client_socket);
+                    exit(0);
+                }
+            
+                printf("Servidor: recibí %s del cliente!\n", calculo);
+                res = calcular(calculo);
+                printf("envio %d\n", res);
+                send(client_socket,&res,sizeof(res),0);
+            }
+            
+            
+        }
         
-        recv(client_socket, &calculo, sizeof(calculo), 0);
-        printf("Servidor: recibí %d del cliente!\n", calculo);
-        close(client_socket);
     }
 
     exit(0);

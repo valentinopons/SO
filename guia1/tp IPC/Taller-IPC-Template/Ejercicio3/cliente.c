@@ -10,7 +10,7 @@ int main() {
 	int server_socket;
     struct sockaddr_un server_addr;
 	char cuenta[10];
-	char res[10];
+	int res;
     server_addr.sun_family = AF_UNIX;
     strcpy(server_addr.sun_path, "unix_socket");
 
@@ -27,8 +27,8 @@ int main() {
 			break;
 		}
 		
-		recv(server_socket,res,sizeof(res),0);
-		printf("el resultado de %s es: %s", cuenta, res);
+		recv(server_socket,&res,sizeof(res),0);
+		printf("el resultado es: %d\n", res);
 	}
 	
 	exit(0);
