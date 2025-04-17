@@ -23,16 +23,16 @@ void process(int fd[][2],int leftPipe[2],int rightPipe[2], int i, int n){
 	}
 	
 	while (1){
-		sleep(1);
 		k = read(leftPipe[PIPE_READ],&num, sizeof(num));
 		if(k == 0){
 			break;
 		}
+		sleep(1);
 
 		printf("soy hijo numero: %i recibi: %i", i, num);
 		num++;
-		write(rightPipe[PIPE_WRITE],&num,sizeof(num));
 		printf(" mando el numero: %i \n",num);
+		write(rightPipe[PIPE_WRITE],&num,sizeof(num));
 	}
 		close(leftPipe[PIPE_READ]);
 		close(rightPipe[PIPE_WRITE]);
@@ -55,22 +55,21 @@ void special_process(int fd[][2],int leftPipe[2],int rightPipe[2],int n,int fd1[
 
 	
 	read(fd1[PIPE_READ], &k, sizeof(k));
-	printf("soy hijo numero: %i recibi: %i mando el numero: %i", start1, k,k+1);
+	printf("soy EL ELEGIDO: %i recibi del padre: %i mando el numero: %i\n", start1, k,k+1);
 	close(fd1[PIPE_READ]);
+	k++;
+	sleep(1);
+	write(rightPipe[PIPE_WRITE],&k,sizeof(k));
 	
-
-
 	while(1){
-		sleep(1);
 		read(leftPipe[PIPE_READ],&k,sizeof(k));
 		printf("soy hijo especial numero: %i recibi: %i mando el numero: %i\n", start1, k, k+1);
-
+		sleep(1);
 		if (k > secret_num){
 			break;
 		}
 		k++;
 		write(rightPipe[PIPE_WRITE],&k, sizeof(k));
-		printf(" mando el numero: %i",k);
 
 	}
 		write(fd2[PIPE_WRITE], &k, sizeof(k)); //mando resultado al padre
@@ -112,21 +111,19 @@ int main(int argc, char **argv)
 	for (int i = 0; i < n; i++){
 		pid_t child = fork();
 		if (child == 0){
-
-			if (child == 0){
-				if (i == start){
-					if (i == 0){
-						special_process(fd, fd[n-1], fd[i],n,fd1, fd2);
-					} else {
-						special_process(fd, fd[i-1], fd[i],n,fd1, fd2);
-					}
-					// ya hace exit dentro, no sigue
-				} else if (i == 0){
-					process(fd, fd[n-1], fd[i], i, n);
+			if (i == start){
+				if (i == 0){
+					special_process(fd, fd[n-1], fd[i],n,fd1, fd2);
 				} else {
-					process(fd, fd[i-1], fd[i], i, n);
+					special_process(fd, fd[i-1], fd[i],n,fd1, fd2);
 				}
+				// ya hace exit dentro, no sigue
+			} else if (i == 0){
+				process(fd, fd[n-1], fd[i], i, n);
+			} else {
+				process(fd, fd[i-1], fd[i], i, n);
 			}
+			
 			
 		}
 		sleep(1);
@@ -140,14 +137,14 @@ int main(int argc, char **argv)
 		close(fd[i][PIPE_WRITE]);
 	}
 
-
-	write(fd1[PIPE_WRITE], &buffer, sizeof(buffer)); //le mando al elegido el buffer para que comience
 	printf("Padre comienza!!!\n");
+	printf("padre envia: %i\n", buffer);
+	write(fd1[PIPE_WRITE], &buffer, sizeof(buffer)); //le mando al elegido el buffer para que comience
 	close(fd1[PIPE_WRITE]);
 	close(fd1[PIPE_READ]); // cierro  lectura para pipe padre -> elegido
 
 
-	printf("padre envia: %i\n", buffer);
+	
 	read(fd2[PIPE_READ], &buffer, sizeof(buffer));
 	close(fd2[PIPE_READ]);
 	close(fd2[PIPE_WRITE]);// cierro pipe escritura elegido -> padre
